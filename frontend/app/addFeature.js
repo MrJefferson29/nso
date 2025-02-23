@@ -50,7 +50,7 @@ const AddFeature = () => {
     });
 
     try {
-      const response = await axios.post('http://192.168.14.1:5000/features/upload', formData, {
+      const response = await axios.post('https://nso.onrender.com/features/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

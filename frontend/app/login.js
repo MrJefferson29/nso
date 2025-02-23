@@ -14,7 +14,7 @@ export default function Login() {
     const handleLogin = async () => {
         try {
             console.log('Attempting login with:', email, password);
-            const response = await axios.post('https://pac-app-hj5l.onrender.com/auth/login', {
+            const response = await axios.post('https://nso.onrender.com/auth/login', {
                 email,
                 password,
             });

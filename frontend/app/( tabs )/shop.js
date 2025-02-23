@@ -25,7 +25,7 @@ export default function Shop() {
                     setLoading(false);
                 }
 
-                const response = await axios.get('https://pac-app-hj5l.onrender.com/shop/get-all');
+                const response = await axios.get('https://nso.onrender.com/shop/get-all');
                 const newItems = response.data.data;
                 setItems(newItems); // Set the new items
                 setFilteredItems(newItems); // Set the new filtered items

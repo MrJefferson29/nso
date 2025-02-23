@@ -13,7 +13,7 @@ export default function Register({ navigation }) {
 
     const handleRegister = async () => {
         try {
-            const response = await axios.post('https://pac-app-hj5l.onrender.com/auth/register', {
+            const response = await axios.post('https://nso.onrender.com/auth/register', {
                 username,
                 email,
                 password,

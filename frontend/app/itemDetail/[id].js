@@ -19,7 +19,7 @@ export default function ItemDetail() {
     useEffect(() => {
         const fetchItemDetail = async () => {
             try {
-                const response = await axios.get(`https://pac-app-hj5l.onrender.com/shop/${id}`);
+                const response = await axios.get(`https://nso.onrender.com/shop/${id}`);
                 setItem(response.data.data);
             } catch (err) {
                 setError('Failed to fetch item details');
@@ -54,7 +54,7 @@ export default function ItemDetail() {
             {item && (
                 <>
                     <Image
-                        source={{ uri: `https://pac-app-hj5l.onrender.com/${item.images[0]}` }}
+                        source={{ uri: `${item.images[0]}` }}
                         style={styles.image}
                     />
                     <View style={styles.content}>

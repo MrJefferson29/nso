@@ -67,7 +67,7 @@ const AddItem = () => {
     formData.append('description', description);
 
     try {
-      const response = await fetch('https://pac-app-hj5l.onrender.com/shop/add', {
+      const response = await fetch('https://nso.onrender.com/shop/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',
