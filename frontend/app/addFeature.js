@@ -1,149 +1,164 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import axios from 'axios';
+import * as MediaLibrary from 'expo-media-library';
+import { AuthContext } from './Contexts/AuthContext';
+import { Video } from 'expo-av'; // Import Video component
 import { useRouter } from 'expo-router';
 
 const AddFeature = () => {
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [category, setCategory] = useState('');
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const router = useRouter();
+  const [video, setVideo] = useState(null);
+  const { userToken } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter()
 
-  const pickMedia = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      quality: 1,
-      base64: false,
-    });
+  useEffect(() => {
+    requestPermissions();
+  }, []);
 
-    // Handle if the user cancels or picks an image
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const uri = result.assets[0].uri;
-      setSelectedFiles((prevFiles) => [...prevFiles, { uri, type: result.assets[0].type }]);
-    } else {
-      console.log("No media selected or action canceled");
+  const requestPermissions = async () => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission required', 'You need to grant access to your media library');
+      }
+
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+      if (cameraPermission.status !== 'granted') {
+        Alert.alert('Camera permission required', 'You need to grant access to your camera');
+      }
+    } catch (error) {
+      console.error('Error requesting permissions:', error);
     }
   };
 
-  console.log(selectedFiles); // Debugging log to ensure the selected files are updated correctly
+  const pickVideo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      quality: 1,
+    });
+
+    console.log('Image Picker Result:', result);
+
+    if (!result.canceled && result.assets) {
+      setVideo(result.assets[0]); // Use the first asset
+    } else {
+      Alert.alert('No video selected');
+    }
+  };
 
   const handleSubmit = async () => {
+    if (!title || !notes || !category || !video) {
+      Alert.alert('Please fill all fields and select a video.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('title', title);
     formData.append('notes', notes);
     formData.append('category', category);
-
-    // Append files to formData
-    selectedFiles.forEach((file, index) => {
-      const mediaType = file.type.startsWith('image/') ? 'image/jpeg' : 'video/mp4'; // Adjust based on the media type
-      const name = `file${index}.${mediaType === 'image/jpeg' ? 'jpg' : 'mp4'}`; // Set file extension based on type
-
-      const mediaFile = {
-        uri: file.uri,
-        type: mediaType,
-        name,
-      };
-      formData.append('files', mediaFile);
+    formData.append('files', {
+      uri: video.uri,
+      name: video.uri.split('/').pop(),
+      type: 'video/mp4', // Update as necessary
     });
 
     try {
-      const response = await axios.post('https://nso.onrender.com/features/upload', formData, {
+      setLoading(true); // Set loading to true
+      const response = await fetch('http://192.168.14.1:5000/features/create', { // Change from /feature/create to /features/create
+        method: 'POST',
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${userToken}`, // Remove 'Content-Type' as it's set automatically
         },
+        body: formData,
       });
-      console.log(response.data);
-      alert('Feature created successfully!');
+      
+
+      const text = await response.text();
+      console.log('Response:', text);
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = JSON.parse(text);
+      Alert.alert('Feature created successfully!', data.message);
       setTitle('');
       setNotes('');
       setCategory('');
-      setSelectedFiles([]);
-      router.push('/culture');
+      setVideo(null);
+      router.push('/')
     } catch (error) {
-      console.error('Error creating feature:', error);
-      alert('Failed to create feature.');
+      console.error(error);
+      Alert.alert('Error', 'Unable to create feature. Please try again later.');
+    } finally {
+      setLoading(false); // Reset loading state
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Create Feature</Text>
-
+      <Text style={styles.label}>Title:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Title"
         value={title}
         onChangeText={setTitle}
       />
+      <Text style={styles.label}>Notes:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Notes"
         value={notes}
         onChangeText={setNotes}
+        multiline
       />
+      <Text style={styles.label}>Category:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Category"
         value={category}
         onChangeText={setCategory}
       />
-
-      <Button title="Pick Image/Video" onPress={pickMedia} />
-      <View style={styles.preview}>
-        {selectedFiles.map((file, index) => (
-          file.type.startsWith('image/') ? (
-            <Image key={index} source={{ uri: file.uri }} style={styles.imagePreview} />
-          ) : (
-            <Text key={index} style={styles.videoPreview}>Video Selected</Text>
-          )
-        ))}
-      </View>
-
-      <Button title="Create Feature" onPress={handleSubmit} />
+      <Button title="Pick a Video" onPress={pickVideo} />
+      {video && (
+        <View style={styles.videoPreview}>
+          <Text>Selected Video:</Text>
+          <Video
+            source={{ uri: video.uri }}
+            style={styles.videoThumbnail}
+            useNativeControls
+            resizeMode="contain"
+            isLooping
+          />
+        </View>
+      )}
+      <Button title="Create Feature" onPress={handleSubmit} disabled={loading} />
+      {loading && <ActivityIndicator size="large" color="#0000ff" />}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+  label: {
+    marginBottom: 5,
   },
   input: {
-    height: 40,
-    borderColor: '#ccc',
     borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
     marginBottom: 15,
-    paddingLeft: 8,
-  },
-  preview: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    margin: 5,
   },
   videoPreview: {
-    width: 100,
-    height: 100,
-    margin: 5,
-    backgroundColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    textAlign: 'center',
-    lineHeight: 100, // Center text vertically
+    marginVertical: 10,
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: 200,
+    borderRadius: 5,
   },
 });
 

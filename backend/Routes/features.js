@@ -1,18 +1,20 @@
 const express = require('express');
+const featureController = require('../Controllers/features'); // Ensure the path is correct
 const router = express.Router();
-const {
-    uploadFeature,
-    getAllFeatures,
-    getFeatureById,
-} = require('../Controllers/features');
 
-// Route for uploading a feature
-router.post('/upload', uploadFeature);
+// Create a new feature
+router.post('/create', featureController.createFeature);
 
-// Route for fetching all features
-router.get('/get-all', getAllFeatures);
+// Get all features
+router.get('/get-all', featureController.getAllFeatures);
 
-// Route for fetching a feature by ID
-router.get('/:id', getFeatureById);
+// Get a single feature by ID
+router.get('/:id', featureController.getFeatureById);
+
+// Update a feature
+router.put('/:id/update', featureController.updateFeature);
+
+// Delete a feature
+router.delete('/:id/delete', featureController.deleteFeature);
 
 module.exports = router;

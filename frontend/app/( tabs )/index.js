@@ -97,7 +97,7 @@ export default function Index() {
                 style={styles.card}
                 onPress={() => router.push('/quarters')}
               >
-                <Text style={styles.cardText}>Quarters</Text>
+                <Text style={styles.cardText}>Communities</Text>
                 <Text style={styles.subText}>Navigate through the land of Nso, learning it's beautiful culture.</Text>
                 <View style={styles.icon}>
                   <Ionicons name="location" size={24} color="#D8C9AE" />

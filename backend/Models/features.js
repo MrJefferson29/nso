@@ -4,23 +4,19 @@ const mongoose = require('mongoose');
 const featureSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: [true, 'Provide a title'],
-        trim: true
+        required: [true, 'provide a title'],
     },
     notes: {
         type: String,
-        required: [true, 'Provide some notes'],
-        trim: true
+        required: true,
     },
     category: {
         type: String,
+        required: false,
     },
-    video: {
-        type: [String], 
-        default: []  // Ensures it defaults to an empty array if not provided
-    }
+    files: [String]
 }, {timestamps: true});
 
-const Feature = mongoose.model('Feature', featureSchema);
+const Feature = mongoose.model('Feature', featureSchema)
 
 module.exports = Feature;

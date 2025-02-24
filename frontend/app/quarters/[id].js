@@ -169,7 +169,7 @@ const Quartersdetails = () => {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <Image source={project.image} style={styles.image} resizeMode="cover" />
       <View style={styles.contentContainer}>
         <Text style={styles.title}>Welcome to {project.name} Quarter</Text>
@@ -223,7 +223,7 @@ const Quartersdetails = () => {
 
             {activeTab === "Project" && selectedProject && (
               <View style={{ flex: 1 }}>
-                <ScrollView contentContainerStyle={styles.modalContainer}>
+                <ScrollView contentContainerStyle={styles.modalContainer} showsVerticalScrollIndicator={false}>
                   <Text style={styles.modalTitle}>{selectedProject.description}</Text>
                   <Video
                     style={styles.video}
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 8,
     position: 'relative',
-    top: 250
+    marginVertical: 10,
   },
   supportText: {
     fontSize: 16,

@@ -1,83 +1,85 @@
-const cloudinary = require('cloudinary').v2;
+const Feature = require('../Models/features');
+const cloudinary = require('../cloudinary'); // Ensure Cloudinary is configured
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const Feature = require('../Models/features'); // Assuming you have a Feature model
 
-// Configure Cloudinary with your cloud name, API key, and API secret
-cloudinary.config({
-    cloud_name: 'da57ehczx',
-    api_key: '642315663936742',
-    api_secret: 'NSx2EUMJ7yj_3cvALZvsRajGsNs',
-});
-
-// Set up multer storage with Cloudinary
+// Cloudinary storage for images/videos
 const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'uploads', // Specify the folder in Cloudinary
-        allowed_formats: ['mp4', 'mkv', 'avi'], // Allowed video formats
-    },
+  cloudinary: cloudinary,
+  params: async (req, file) => ({
+    folder: 'features',
+    resource_type: file.mimetype.startsWith('image/') ? 'image' : 'video',
+    format: file.mimetype.split('/')[1],
+    public_id: `${file.fieldname}-${Date.now()}`
+  }),
 });
 
-// Create the multer instance
-const upload = multer({
-    storage: storage,
-    limits: {
-        fileSize: 100 * 1024 * 1024, // 100MB limit
-    },
-});
+const upload = multer({ storage: storage });
 
-// Upload feature controller
-const uploadFeature = async (req, res) => {
-    upload.single('video')(req, res, async (err) => {
-        if (err) {
-            return res.status(400).json({ message: err.message });
-        }
-
-        try {
-            const { title, notes, category } = req.body;
-
-            const newFeature = new Feature({
-                title,
-                notes,
-                category,
-                video: req.file ? [req.file.path] : [], // Save video URL in the array
-            });
-
-            await newFeature.save();
-            res.status(201).json({ message: 'Feature uploaded successfully', feature: newFeature });
-        } catch (error) {
-            res.status(500).json({ message: 'Error uploading feature', error });
-        }
-    });
-};
-
-// Get all features controller
-const getAllFeatures = async (req, res) => {
-    try {
-        const features = await Feature.find(); // Assuming a `Feature` model is defined
-        res.status(200).json(features);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching features', error });
+// Create a new feature with file upload
+exports.createFeature = async (req, res) => {
+  upload.array('files', 10)(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
     }
-};
 
-// Get feature by ID controller
-const getFeatureById = async (req, res) => {
-    const { id } = req.params;
     try {
-        const feature = await Feature.findById(id);
-        if (!feature) {
-            return res.status(404).json({ message: 'Feature not found' });
-        }
-        res.status(200).json(feature);
+      const { title, notes, category } = req.body;
+      const files = req.files.map(file => file.path); // Get Cloudinary file URLs
+
+      const feature = new Feature({
+        title,
+        notes,
+        category,
+        files, // Store Cloudinary URLs
+      });
+
+      const savedFeature = await feature.save();
+      res.status(201).json({ message: 'Feature created successfully', feature: savedFeature });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching feature', error });
+      res.status(500).json({ message: 'Error creating feature', error: error.message });
     }
+  });
 };
 
-module.exports = {
-    uploadFeature,
-    getAllFeatures,
-    getFeatureById,
+// Get all features
+exports.getAllFeatures = async (req, res) => {
+  try {
+    const features = await Feature.find();
+    res.status(200).json(features);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching features', error: error.message });
+  }
+};
+
+// Get a single feature by ID
+exports.getFeatureById = async (req, res) => {
+  try {
+    const feature = await Feature.findById(req.params.id);
+    if (!feature) return res.status(404).json({ message: 'Feature not found' });
+
+    res.status(200).json(feature);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching feature', error: error.message });
+  }
+};
+
+// Update a feature
+exports.updateFeature = async (req, res) => {
+  try {
+    const updatedFeature = await Feature.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json({ message: 'Feature updated successfully', feature: updatedFeature });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating feature', error: error.message });
+  }
+};
+
+// Delete a feature
+exports.deleteFeature = async (req, res) => {
+  try {
+    await Feature.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Feature deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting feature', error: error.message });
+  }
 };

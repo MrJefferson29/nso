@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Client",
+    "name": "Nso",
     "slug": "Client",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.j.f.s.n.pleasegod"
+      "package": "com.j.f.s.n.abego"
     },
     "web": {
       "bundler": "metro",
@@ -47,6 +47,7 @@
       "eas": {
         "projectId": "f64f1a49-b64e-4293-80fe-8326a0d1904c"
       }
-    }
+    },
+    "owner": "j.f.s.n"
   }
 }
