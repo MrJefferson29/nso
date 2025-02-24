@@ -24,7 +24,7 @@ const Features = () => {
 
   const fetchFeatures = async () => {
     try {
-      const response = await axios.get('http://192.168.14.1:5000/features/get-all');
+      const response = await axios.get('https://nso.onrender.com/features/get-all');
       setFeatures(response.data);
     } catch (error) {
       setError('Error fetching features');
@@ -69,7 +69,7 @@ const Features = () => {
             resizeMode="contain"
             isLooping
             shouldPlay={isPlaying} // Play video if it's the currently selected video
-            isMuted={true}
+            isMuted={false}
             onLoadStart={() => setIsLoadingVideo(true)}
             onLoad={() => setIsLoadingVideo(false)}
             onPlaybackStatusUpdate={(status) => {

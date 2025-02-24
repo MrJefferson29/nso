@@ -1,5 +1,5 @@
 const Feature = require('../Models/features');
-const cloudinary = require('../cloudinary'); // Ensure Cloudinary is configured
+const cloudinary = require('./cloudinary'); // Ensure Cloudinary is configured
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
